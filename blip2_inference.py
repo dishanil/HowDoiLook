@@ -1,36 +1,31 @@
+import time
+
 from PIL import Image
-import requests
 from transformers import Blip2Processor, Blip2ForConditionalGeneration
 import torch
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-print("processor Start")
-processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
-print("processor End")
+def blip2_load_model():
+    processor = Blip2Processor.from_pretrained("Salesforce/blip2-opt-2.7b")
 
-model = Blip2ForConditionalGeneration.from_pretrained(
-    "Salesforce/blip2-opt-2.7b", torch_dtype=torch.float16
-)
-print("Model end")
+    model = Blip2ForConditionalGeneration.from_pretrained(
+        "Salesforce/blip2-opt-2.7b", torch_dtype=torch.float16
+    )
 
-model.to(device)
+    model.to(DEVICE)
 
-import time
+    return model, processor
 
-start = time.monotonic()
-image = Image.open("kurta.jpg")
+def blip2_inference(image, model, processor):
+    start = time.monotonic()
+    prompt = "Question: Describe the outfit of the person in a descriptive way. Answer:"
 
-# print("inputs Start")
-# inputs = processor(images=image, return_tensors="pt").to(device, torch.float16)
-print("inputs End")
+    inputs = processor(image, text=prompt, return_tensors="pt").to(DEVICE, torch.float16)
 
-prompt = "Question: Describe the outfit of the person in a descriptive way. Answer:"
+    generated_ids = model.generate(**inputs, max_new_tokens=50)
+    generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
 
-inputs = processor(image, text=prompt, return_tensors="pt").to(device, torch.float16)
+    print(f"Time taken: {time.monotonic() - start}s")
 
-generated_ids = model.generate(**inputs, max_new_tokens=10)
-generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
-print(generated_text)
-
-print(time.monotonic() - start)
+    return generated_text

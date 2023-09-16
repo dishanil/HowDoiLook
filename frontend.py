@@ -1,34 +1,49 @@
 import numpy as np
 import gradio as gr
+from blip2_inference import blip2_load_model, blip2_inference
+from prompt_utils import promptEngineer, gpt_inference, getSuggestions
+
+SUGGESTIONS_TEXT = "Yes, please!"
+TITLE = "Hey, how do I look?"
+DESCRIPTION = ("Your attire will be judged based on \n 1. Appropriateness \n 2. Color scheme")
 
 
-def flip_text(x):
-    return x[::-1]
+def inference(img, occasion_desc, suggestions_needed):
+    suggestions_needed = True if suggestions_needed == SUGGESTIONS_TEXT else False
 
+    attire_desc = blip2_inference(img, blip2_model, blip2_processor)
 
-def flip_image(x):
-    return np.fliplr(x)
+    prompt_to_gpt = promptEngineer(attire_desc, occasion_desc)
 
+    print(f"{prompt_to_gpt = }")
 
-with gr.Blocks() as demo:
-    gr.Markdown("Upload outfit to get started!")
-    with gr.Tab("How do I look"):
-        image_input = gr.Image()
-        text_output = gr.Textbox()
-        text_button = gr.Button("Get suggestions")
-        with gr.Accordion("Appropriateness"):
-            gr.Markdown("Look at me...")
-        with gr.Accordion("Color scheme"):
-            gr.Markdown("Look at me...")
-        with gr.Accordion("XYZ"):
-            gr.Markdown("Look at me...")
-    with gr.Tab("What others wear"):
-        with gr.Row():
-            image_input = gr.Image()
-            image_output = gr.Image()
-        image_button = gr.Button("Flip")
+    howDoILook = gpt_inference(prompt_to_gpt)
 
-    text_button.click(flip_text, inputs=image_input, outputs=text_output)
-    image_button.click(flip_image, inputs=image_input, outputs=image_output)
+    suggestions = getSuggestions(occasion_desc)
 
-demo.launch()
+    howDoILook = howDoILook + suggestions
+
+    return howDoILook
+
+# Load the model once for faster inference
+blip2_model, blip2_processor = blip2_load_model()
+
+print("BLIP2 model loaded and ready to infer")
+
+demo = gr.Interface(
+    fn=inference,
+    inputs=[
+        gr.inputs.Image(type="pil"),
+        gr.Textbox(
+                    label="Occasion",
+                    info="Interview - Tech or Consulting? \n Wedding - Mandarin or Indian? \n Season - Summer or Fall?",
+                    lines=3,
+                ),
+        gr.Checkbox(SUGGESTIONS_TEXT, label="Suggestions?", info="Do you need any suggestions about what others generally wear for this situation?"),
+    ],
+    outputs=gr.outputs.Textbox(label="How do I look?"),
+    title=TITLE,
+    description=DESCRIPTION,
+).queue(concurrency_count=1)
+
+demo.launch(share=True)
