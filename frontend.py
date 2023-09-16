@@ -21,7 +21,7 @@ def inference(img, occasion_desc, suggestions_needed):
 
     suggestions = getSuggestions(occasion_desc)
 
-    howDoILook = howDoILook + suggestions
+    howDoILook = howDoILook + "\n" + suggestions
 
     return howDoILook
 
