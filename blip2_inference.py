@@ -19,7 +19,17 @@ def blip2_load_model():
 
 def blip2_inference(image, model, processor):
     start = time.monotonic()
-    prompt = "Question: Describe the outfit of the person in a descriptive way. Answer:"
+
+    # Finding gender
+    prompt = "Question: What is the gender of the person? Answer:"
+
+    inputs = processor(image, text=prompt, return_tensors="pt").to(DEVICE, torch.float16)
+
+    generated_ids = model.generate(**inputs, max_new_tokens=50)
+    gender = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+
+    # Finding attire description
+    prompt = "Question: Explain the outfit in as much detail as possible. Answer:"
 
     inputs = processor(image, text=prompt, return_tensors="pt").to(DEVICE, torch.float16)
 
@@ -28,4 +38,4 @@ def blip2_inference(image, model, processor):
 
     print(f"Time taken: {time.monotonic() - start}s")
 
-    return generated_text
+    return gender, generated_text

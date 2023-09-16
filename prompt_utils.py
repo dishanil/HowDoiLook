@@ -1,7 +1,8 @@
 import openai
 
-def promptEngineer(attire_desc, occasion_desc):
-    prompt_to_gpt = "My clothing attire consists of " + attire_desc.strip() + " and the place or event I am going for can be described as " + occasion_desc.strip() + "." + "Do you think I am appropriately dressed? Please rank it out of 10 where 10 is the most appropriate."
+def promptEngineer(gender, attire_desc, occasion_desc):
+    prompt_to_gpt = f"I am a {gender}, wearing a {attire_desc}. Details of the occasion are as follows: {occasion_desc}. Give one overall rating out of 'consider changing outfit', 'could be better', 'on point', and title it 'overall rating'. Consider: Color coordination,  Color appropriateness, Potential cultural sensitivity, Seasonal suitability, accessories (for each of the categories give one succinct sentence."
+
     return prompt_to_gpt
 
 def gpt_inference(prompt_to_gpt):
@@ -14,7 +15,7 @@ def gpt_inference(prompt_to_gpt):
 def generate_chat_completion(
     messages: dict[str, str | list[dict[str, str]]], temperature: int = 1, max_tokens: int | None = None
 ) -> dict[str, str] | None:
-    openai.api_key = "<use API key>"
+    openai.api_key = "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"
     response_text = openai.ChatCompletion.create(
                 model=messages["model"], messages=messages["messages"], temperature=temperature, max_tokens=max_tokens
             )
@@ -22,11 +23,6 @@ def generate_chat_completion(
     response = response_text['choices'][0]['message']['content']
 
     return response
-
-def getSuggestions(occasion_desc):
-    prompt = occasion_desc.strip() + " What should I wear to this?"
-
-    return "Suggestion: \n Wear anything please!"
 
 def get_prompts(prompt_to_gpt) -> dict[str, str | list[dict[str, str]]]:
     """Get prompts for the given style"""
