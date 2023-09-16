@@ -15,7 +15,7 @@ def gpt_inference(prompt_to_gpt):
 def generate_chat_completion(
     messages: dict[str, str | list[dict[str, str]]], temperature: int = 1, max_tokens: int | None = None
 ) -> dict[str, str] | None:
-    openai.api_key = "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"
+    openai.api_key = "<API_Key>"
     response_text = openai.ChatCompletion.create(
                 model=messages["model"], messages=messages["messages"], temperature=temperature, max_tokens=max_tokens
             )
